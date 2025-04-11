@@ -1,5 +1,5 @@
 // src/App.js
-
+import Vente from './Vente.jsx'
 import React from 'react';
 
 function App() {
@@ -11,6 +11,7 @@ function App() {
       <p className="text-lg text-gray-700 mb-6 text-center max-w-xl">
         Explorez les meilleures offres de voyages et de produits liés au tourisme. Réservez maintenant et commencez votre aventure !
       </p>
+      <Vente />
     
     </div>
   );
