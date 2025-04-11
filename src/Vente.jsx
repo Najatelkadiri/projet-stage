@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 const Vente = () => {
   const [ventes, setVentes] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [newVente, setNewVente] = useState({
     zone: '',
     lot: '',
@@ -190,4 +189,4 @@ const Vente = () => {
   );
 };
 
-export default Vente;
+export default Vente;
