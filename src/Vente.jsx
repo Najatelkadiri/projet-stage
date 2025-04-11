@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 
 const Vente = () => {
   const [ventes, setVentes] = useState([]);
-  const [editingVente, setEditingVente] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [newVente, setNewVente] = useState({
-    id: null,
+    zone: '',
     lot: '',
+    niveau: '',
     ntf: '',
     acheteur: '',
+    date: '',
+    situation: '',
     superficie: '',
     puD: '',
     puB: '',
@@ -16,53 +19,29 @@ const Vente = () => {
     prixTotalB: '',
     prixTotal: '',
     totalAprAvances: '',
-    date: '',
-    zone: { value: '' },
-    niveau: { value: '' },
-    situation: { value: '' },
-    statut: { value: '' }
+    statut: ''
   });
+  const [editingIndex, setEditingIndex] = useState(null);
 
-  const fetchVentes = () => {
-    fetch('http://demo9780723.mockable.io/vente')
-      .then(response => response.json())
-      .then(data => setVentes(data.content))
-      .catch(error => console.error('Erreur de chargement des ventes:', error));
-  };
-
-  useEffect(() => {
-    fetchVentes();
-  }, []);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setNewVente(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (editingIndex !== null) {
+      const updatedVentes = ventes.map((vente, index) =>
+        index === editingIndex ? newVente : vente
+      );
+      setVentes(updatedVentes);
+      setEditingIndex(null);
     } else {
-      setNewVente(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSubmit = () => {
-    if (editingVente) {
-      setVentes(prev => prev.map(v => (v.id === editingVente ? newVente : v)));
-      setEditingVente(null);
-    } else {
-      const id = Math.floor(Math.random() * 100000);
-      setVentes(prev => [...prev, { ...newVente, id }]);
+      setVentes([...ventes, newVente]);
     }
     setNewVente({
-      id: null,
+      zone: '',
       lot: '',
+      niveau: '',
       ntf: '',
       acheteur: '',
+      date: '',
+      situation: '',
       superficie: '',
       puD: '',
       puB: '',
@@ -71,96 +50,144 @@ const Vente = () => {
       prixTotalB: '',
       prixTotal: '',
       totalAprAvances: '',
-      date: '',
-      zone: { value: '' },
-      niveau: { value: '' },
-      situation: { value: '' },
-      statut: { value: '' }
+      statut: ''
     });
   };
 
-  const handleEdit = (vente) => {
-    setEditingVente(vente.id);
-    setNewVente(vente);
+  const handleDelete = (index) => {
+    const updatedVentes = ventes.filter((vente, venteIndex) => venteIndex !== index);
+    setVentes(updatedVentes);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Supprimer cette vente ?")) {
-      setVentes(prev => prev.filter(v => v.id !== id));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setNewVente({
+      ...newVente,
+      [name]: value,
+    });
+  };
+
+  const handleEdit = (index) => {
+    const venteToEdit = ventes[index];
+    setNewVente({ ...venteToEdit });
+    setEditingIndex(index);
+  };
+
+  useEffect(() => {
+    fetch('/vente')
+      .then(response => response.json())
+      .then(data => setVentes(data.content))
+      .catch(error => console.error('Erreur de chargement des ventes:', error));
+  }, []);
+
+  const styles = {
+    container: {
+      padding: '20px',
+      maxWidth: '600px',
+      margin: '30px auto',
+      border: '1px solid #ccc',
+      borderRadius: '12px',
+      backgroundColor: '#f9f9f9',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+    },
+    input: {
+      width: '100%',
+      padding: '8px',
+      marginBottom: '10px',
+      borderRadius: '6px',
+      border: '1px solid #ccc',
+      fontSize: '14px'
+    },
+    label: {
+      fontWeight: 'bold',
+      display: 'block',
+      marginBottom: '4px'
+    },
+    button: {
+      padding: '10px 20px',
+      marginRight: '10px',
+      borderRadius: '6px',
+      border: 'none',
+      backgroundColor: '#007bff',
+      color: 'white',
+      cursor: 'pointer'
+    },
+    table: {
+      width: '95%',
+      margin: '30px auto',
+      borderCollapse: 'collapse',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+    },
+    th: {
+      backgroundColor: '#007bff',
+      color: 'white',
+      padding: '8px'
+    },
+    td: {
+      padding: '8px',
+      textAlign: 'center',
+      borderBottom: '1px solid #ddd'
+    },
+    actionButtons: {
+      display: 'flex',
+      gap: '6px',
+      justifyContent: 'center'
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Gestion des ventes</h2>
+    <>
+      <form onSubmit={handleAdd} style={styles.container}>
+        <h2 style={{ textAlign: 'center' }}>{editingIndex !== null ? 'Modifier une Vente' : 'Ajouter une Vente'}</h2>
 
-      {/* Formulaire d'ajout / modification */}
-      <div style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
-        <h4>{editingVente ? 'Modifier Vente' : 'Ajouter Vente'}</h4>
-        <input name="lot" placeholder="Lot" value={newVente.lot} onChange={handleInputChange} />
-        <input name="ntf" placeholder="NTF" value={newVente.ntf} onChange={handleInputChange} />
-        <input name="acheteur" placeholder="Acheteur" value={newVente.acheteur} onChange={handleInputChange} />
-        <input name="superficie" placeholder="Superficie" value={newVente.superficie} onChange={handleInputChange} />
-        <input name="puD" placeholder="Pu D" value={newVente.puD} onChange={handleInputChange} />
-        <input name="puB" placeholder="Pu B" value={newVente.puB} onChange={handleInputChange} />
-        <input name="puVente" placeholder="Pu Vente" value={newVente.puVente} onChange={handleInputChange} />
-        <input name="prixTotalD" placeholder="Prix Total D" value={newVente.prixTotalD} onChange={handleInputChange} />
-        <input name="prixTotalB" placeholder="Prix Total B" value={newVente.prixTotalB} onChange={handleInputChange} />
-        <input name="prixTotal" placeholder="Prix Total" value={newVente.prixTotal} onChange={handleInputChange} />
-        <input name="totalAprAvances" placeholder="Total Apr" value={newVente.totalAprAvances} onChange={handleInputChange} />
-        <input name="date" placeholder="Date" type="date" value={newVente.date} onChange={handleInputChange} />
-        <input name="zone.value" placeholder="Zone" value={newVente.zone?.value} onChange={handleInputChange} />
-        <input name="niveau.value" placeholder="Niveau" value={newVente.niveau?.value} onChange={handleInputChange} />
-        <input name="situation.value" placeholder="Situation" value={newVente.situation?.value} onChange={handleInputChange} />
-        <input name="statut.value" placeholder="Statut" value={newVente.statut?.value} onChange={handleInputChange} />
-        <button onClick={handleSubmit} style={{ marginLeft: '10px' }}>
-          {editingVente ? 'Enregistrer' : 'Ajouter'}
-        </button>
-      </div>
+        {Object.keys(newVente).map((key) => (
+          <div style={{ marginBottom: '10px' }} key={key}>
+            <label style={styles.label}>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
+            <input
+              type={key === 'date' ? 'date' : key.includes('prix') || key.includes('pu') || key === 'superficie' || key === 'totalAprAvances' ? 'number' : 'text'}
+              name={key}
+              value={newVente[key]}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
+        ))}
 
-      {/* Boutons recharge & suppression */}
-      <div style={{ marginBottom: '10px' }}>
-        <button onClick={fetchVentes} style={{ marginRight: '10px' }}>🔄 Recharger</button>
-        <button onClick={() => setVentes([])} style={{ backgroundColor: 'darkred', color: 'white' }}>🗑️ Supprimer tout</button>
-      </div>
+        <button style={styles.button} type="submit">{editingIndex !== null ? 'Mettre à jour' : 'Ajouter'}</button>
+      </form>
 
-      {/* Tableau */}
-      <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
-        <thead style={{ backgroundColor: '#eee' }}>
+      <table style={styles.table}>
+        <thead>
           <tr>
-            <th>Zone</th><th>Lot</th><th>Niveau</th><th>Ntf</th><th>Acheteur</th><th>Date</th><th>Situation</th><th>Superficie</th>
-            <th>Pu D</th><th>Pu B</th><th>Pu Vente</th><th>Prix Total D</th><th>Prix Total B</th><th>Prix Total</th><th>Total Apr</th><th>Statut</th><th>Actions</th>
+            <th style={styles.th}>Actions</th>
+            {Object.keys(newVente).map((key) => (
+              <th key={key} style={styles.th}>{key.charAt(0).toUpperCase() + key.slice(1)}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {ventes.map((vente) => (
-            <tr key={vente.id}>
-              <td>{vente.zone?.value}</td>
-              <td>{vente.lot}</td>
-              <td>{vente.niveau?.value}</td>
-              <td>{vente.ntf}</td>
-              <td>{vente.acheteur}</td>
-              <td>{new Date(vente.date).toLocaleDateString()}</td>
-              <td>{vente.situation?.value}</td>
-              <td>{vente.superficie}</td>
-              <td>{vente.puD}</td>
-              <td>{vente.puB}</td>
-              <td>{vente.puVente}</td>
-              <td>{vente.prixTotalD}</td>
-              <td>{vente.prixTotalB}</td>
-              <td>{vente.prixTotal}</td>
-              <td>{vente.totalAprAvances}</td>
-              <td>{vente.statut?.value}</td>
-              <td>
-                <button onClick={() => handleEdit(vente)} style={{ marginRight: '5px' }}>✏️</button>
-                <button onClick={() => handleDelete(vente.id)} style={{ color: 'white', backgroundColor: 'red', border: 'none' }}>🗑️</button>
+          {ventes.map((vente, index) => (
+            <tr key={index}>
+              <td style={styles.td}>
+                <div style={styles.actionButtons}>
+                  <button onClick={() => handleEdit(index)}>✏</button>
+                  <button onClick={() => handleDelete(index)}>🗑</button>
+                </div>
               </td>
+              {Object.keys(newVente).map((key) => (
+                <td key={key} style={styles.td}>
+                  {key === 'date'
+                    ? new Date(vente[key]).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                    : vente[key]?.value || vente[key]}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+    </>
   );
 };
 
-export default Vente;
+export default Vente;
